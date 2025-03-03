@@ -15,8 +15,20 @@ Route::post('/upload', function (Request $request) {
     }
 
     $image = $request->file('image');
-    $response = Http::attach('image', file_get_contents($image->path()), $image->getClientOriginalName())
-        ->post('http://127.0.0.1:5000/detect');
 
-    return $response->json();
+    $response = Http::attach(
+        'image',
+        file_get_contents($image->path()),
+        $image->getClientOriginalName()
+    )->post('http://127.0.0.1:5000/detect');
+
+    $data = $response->json();
+
+    // Nếu không có đối tượng nào được nhận diện
+    if (empty($data['detections'])) {
+        return response()->json(['message' => 'No objects detected!'], 200);
+    }
+
+    return response()->json($data);
+
 })->name('upload');
